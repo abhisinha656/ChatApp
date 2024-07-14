@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>Chat Application</h2>
+        </div>
+        <div class="chat-messages" id="messagebox"></div>
+        <div class="chat-input">
+            <input type="text" id="message" placeholder="Type a message..." autocomplete="off">
+            <button id="Btn">Send</button>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const inputMessage = document.getElementById('message');
+        const sendButton = document.getElementById('Btn');
+        const messageBox = document.getElementById('messagebox');
+
+        let username = '';
+
+        // Prompt for username
+        while (!username) {
+            username = prompt('Please enter your name:');
+        }
+
+        sendButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (inputMessage.value) {
+                socket.emit('chat message', { user: username, text: inputMessage.value });
+                inputMessage.value = '';
+            }
+        });
+
+        inputMessage.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && inputMessage.value) {
+                socket.emit('chat message', { user: username, text: inputMessage.value });
+                inputMessage.value = '';
+            }
+        });
+
+        socket.on('chat message', function(msg) {
+            addMessage(msg);
+        });
+
+        function addMessage(message) {
+            const item = document.createElement('div');
+            item.classList.add('message', message.user === username ? 'sent' : 'received');
+            item.innerHTML = `<strong>${message.user}:</strong> ${message.text}`;
+            messageBox.appendChild(item);
+            messageBox.scrollTop = messageBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
